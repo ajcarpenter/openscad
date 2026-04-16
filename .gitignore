@@ -76,6 +76,9 @@ src/*.debug
 .DS_Store
 /build
 /build-web
+# WASM build outputs copied into the web UI directory
+web/openscad.js
+web/openscad.wasm
 /release
 tests/DartConfiguration.tcl
 tests/__pycache__/

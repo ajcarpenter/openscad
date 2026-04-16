@@ -321,6 +321,19 @@ if (CMAKE_SYSTEM_NAME STREQUAL Emscripten)
       -sEXPORT_NAME=OpenSCAD
       -sMODULARIZE=1
     )
+
+    # Custom target to assemble a serveable web directory:
+    #   Copies the web UI assets and the built WASM module into build/web/
+    add_custom_target(install-web
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/web" "${CMAKE_BINARY_DIR}/web"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE:OpenSCADExe>" "${CMAKE_BINARY_DIR}/web/openscad.js"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_BINARY_DIR}/openscad.wasm" "${CMAKE_BINARY_DIR}/web/openscad.wasm"
+      DEPENDS OpenSCADExe
+      COMMENT "Assembling web directory in ${CMAKE_BINARY_DIR}/web/"
+    )
   elseif (WASM_BUILD_TYPE STREQUAL "node")
     target_link_options(OpenSCADExe PUBLIC
       -sENVIRONMENT=node,worker
