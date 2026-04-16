@@ -16,6 +16,7 @@
  */
 
 let instance = null;
+let OpenSCADFactory = null;
 
 self.onmessage = async (event) => {
   const { type, ...data } = event.data;
@@ -41,33 +42,42 @@ async function initialize() {
 
     // The WASM module should be available at the expected path relative to the web root
     // In production, this would be built via emscripten and placed alongside the web files
-    const { default: OpenSCAD } = await import('../openscad.js');
+    const module = await import('../openscad.js');
+    OpenSCADFactory = module.default;
 
-    instance = await OpenSCAD({
-      noInitialRun: true,
-      print: (text) => log('info', text),
-      printErr: (text) => {
-        // OpenSCAD outputs warnings and progress to stderr
-        if (text.startsWith('WARNING:') || text.startsWith('DEPRECATED:')) {
-          log('warn', text);
-        } else if (text.startsWith('ERROR:') || text.startsWith('TRACE:')) {
-          log('error', text);
-        } else {
-          log('trace', text);
-        }
-      },
-    });
-
-    // Set up the virtual filesystem
-    setupFilesystem();
+    await createInstance();
 
     log('success', 'OpenSCAD WASM module loaded successfully.');
     self.postMessage({ type: 'ready' });
   } catch (err) {
-    log('error', `Failed to load OpenSCAD WASM module: ${err.message}`);
+    log('error', `Failed to load OpenSCAD WASM module: ${err.message || err}`);
     log('info', 'Running in demo mode — rendering is simulated.');
     self.postMessage({ type: 'ready', demo: true });
   }
+}
+
+/**
+ * Create a fresh WASM instance. Called before each render since
+ * callMain tears down the runtime (EXIT_RUNTIME=1).
+ */
+async function createInstance() {
+  instance = await OpenSCADFactory({
+    noInitialRun: true,
+    print: (text) => log('info', text),
+    printErr: (text) => {
+      // OpenSCAD outputs warnings and progress to stderr
+      if (text.startsWith('WARNING:') || text.startsWith('DEPRECATED:')) {
+        log('warn', text);
+      } else if (text.startsWith('ERROR:') || text.startsWith('TRACE:')) {
+        log('error', text);
+      } else {
+        log('trace', text);
+      }
+    },
+  });
+
+  // Set up the virtual filesystem
+  setupFilesystem();
 }
 
 /**
@@ -97,7 +107,7 @@ function setupFilesystem() {
 async function render({ code, outputFormat = 'stl', backend = 'manifold', extraFiles = [] }) {
   const start = performance.now();
 
-  if (!instance) {
+  if (!OpenSCADFactory) {
     // Demo mode: generate a simple cube STL for preview
     log('info', 'Demo mode: generating sample geometry...');
     await simulateRender(code, outputFormat, start);
@@ -105,6 +115,10 @@ async function render({ code, outputFormat = 'stl', backend = 'manifold', extraF
   }
 
   try {
+    // Reinitialize the WASM instance for each render since callMain
+    // tears down the runtime (EXIT_RUNTIME=1 in the Emscripten build).
+    await createInstance();
+
     // Write the input file
     instance.FS.writeFile('input.scad', code);
 
@@ -123,7 +137,17 @@ async function render({ code, outputFormat = 'stl', backend = 'manifold', extraF
     log('info', `Rendering with: openscad ${args.join(' ')}`);
 
     // Run OpenSCAD
-    const exitCode = instance.callMain(args);
+    let exitCode;
+    try {
+      exitCode = instance.callMain(args);
+    } catch (callErr) {
+      // Emscripten throws ExitStatus on exit() — treat as normal exit
+      if (callErr.name === 'ExitStatus' || typeof callErr.status === 'number') {
+        exitCode = callErr.status ?? 1;
+      } else {
+        throw callErr;
+      }
+    }
     const duration = performance.now() - start;
 
     if (exitCode === 0) {
@@ -150,15 +174,9 @@ async function render({ code, outputFormat = 'stl', backend = 'manifold', extraF
       log('error', `Render failed with exit code ${exitCode}`);
       self.postMessage({ type: 'result', exitCode, duration, outputFormat });
     }
-
-    // Clean up input file
-    try { instance.FS.unlink('input.scad'); } catch { /* ignore */ }
-    for (const file of extraFiles) {
-      try { instance.FS.unlink(file.name); } catch { /* ignore */ }
-    }
   } catch (err) {
     const duration = performance.now() - start;
-    log('error', `Render error: ${err.message}`);
+    log('error', `Render error: ${err.message || err}`);
     self.postMessage({ type: 'result', exitCode: 1, duration, outputFormat });
   }
 }

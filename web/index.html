@@ -45,25 +45,25 @@
       </div>
       <div class="toolbar-separator"></div>
       <button class="toolbar-btn" id="btn-new" title="New file (Ctrl+N)">
-        <i class="lucide lucide-file-plus"></i>
+        <i class="icon-file-plus"></i>
         <span class="btn-label">New</span>
       </button>
       <button class="toolbar-btn" id="btn-open" title="Open file (Ctrl+O)">
-        <i class="lucide lucide-folder-open"></i>
+        <i class="icon-folder-open"></i>
         <span class="btn-label">Open</span>
       </button>
       <button class="toolbar-btn" id="btn-save" title="Save file (Ctrl+S)">
-        <i class="lucide lucide-save"></i>
+        <i class="icon-save"></i>
         <span class="btn-label">Save</span>
       </button>
       <div class="toolbar-separator"></div>
       <button class="toolbar-btn primary" id="btn-render" title="Render (F5)">
-        <i class="lucide lucide-play"></i>
+        <i class="icon-play"></i>
         <span class="btn-label">Render</span>
       </button>
       <div class="toolbar-separator"></div>
       <button class="toolbar-btn" id="btn-export" title="Export result" disabled>
-        <i class="lucide lucide-download"></i>
+        <i class="icon-download"></i>
         <span class="btn-label">Export</span>
       </button>
       <select id="export-format" class="toolbar-select" title="Export format" disabled>
@@ -79,14 +79,14 @@
     </div>
     <div class="toolbar-right">
       <button class="toolbar-btn" id="btn-examples" title="Load example">
-        <i class="lucide lucide-book-open"></i>
+        <i class="icon-book-open"></i>
         <span class="btn-label">Examples</span>
       </button>
       <button class="toolbar-btn" id="btn-settings" title="Settings">
-        <i class="lucide lucide-settings"></i>
+        <i class="icon-settings"></i>
       </button>
       <a class="toolbar-btn" href="https://openscad.org/documentation.html" target="_blank" rel="noopener" title="Documentation">
-        <i class="lucide lucide-help-circle"></i>
+        <i class="icon-circle-help"></i>
       </a>
     </div>
   </header>
@@ -98,16 +98,16 @@
       <div class="panel-header">
         <div class="panel-tabs">
           <button class="panel-tab active" data-tab="editor">
-            <i class="lucide lucide-code-2"></i>
+            <i class="icon-code"></i>
             <span id="editor-filename">untitled.scad</span>
           </button>
         </div>
         <div class="panel-actions">
           <button class="icon-btn" id="btn-format" title="Format code">
-            <i class="lucide lucide-align-left"></i>
+            <i class="icon-align-left"></i>
           </button>
           <button class="icon-btn" id="btn-wrap" title="Toggle word wrap">
-            <i class="lucide lucide-wrap-text"></i>
+            <i class="icon-wrap-text"></i>
           </button>
         </div>
       </div>
@@ -122,28 +122,28 @@
       <div class="panel-header">
         <div class="panel-tabs">
           <button class="panel-tab active">
-            <i class="lucide lucide-box"></i>
+            <i class="icon-box"></i>
             <span>3D View</span>
           </button>
         </div>
         <div class="panel-actions">
           <button class="icon-btn" id="btn-reset-view" title="Reset camera (Home)">
-            <i class="lucide lucide-home"></i>
+            <i class="icon-home"></i>
           </button>
           <button class="icon-btn" id="btn-view-top" title="Top view">
-            <i class="lucide lucide-arrow-up"></i>
+            <i class="icon-arrow-up"></i>
           </button>
           <button class="icon-btn" id="btn-view-front" title="Front view">
-            <i class="lucide lucide-square"></i>
+            <i class="icon-square"></i>
           </button>
           <button class="icon-btn" id="btn-toggle-grid" title="Toggle grid">
-            <i class="lucide lucide-grid-3x3"></i>
+            <i class="icon-grid-3x3"></i>
           </button>
           <button class="icon-btn" id="btn-toggle-axes" title="Toggle axes">
-            <i class="lucide lucide-axis-3d"></i>
+            <i class="icon-axis-3d"></i>
           </button>
           <button class="icon-btn" id="btn-toggle-wireframe" title="Toggle wireframe">
-            <i class="lucide lucide-triangle"></i>
+            <i class="icon-triangle"></i>
           </button>
         </div>
       </div>
@@ -151,7 +151,7 @@
         <canvas id="viewer-canvas"></canvas>
         <div class="viewer-overlay" id="viewer-status">
           <div class="viewer-message">
-            <i class="lucide lucide-play" style="font-size: 48px; opacity: 0.3;"></i>
+            <i class="icon-play" style="font-size: 48px; opacity: 0.3;"></i>
             <p>Press <kbd>F5</kbd> or click <strong>Render</strong> to preview your model</p>
           </div>
         </div>
@@ -170,18 +170,18 @@
     <div class="panel-header">
       <div class="panel-tabs">
         <button class="panel-tab active" data-tab="console">
-          <i class="lucide lucide-terminal"></i>
+          <i class="icon-terminal"></i>
           <span>Console</span>
         </button>
         <button class="panel-tab" data-tab="parameters" id="tab-parameters">
-          <i class="lucide lucide-sliders-horizontal"></i>
+          <i class="icon-sliders-horizontal"></i>
           <span>Customizer</span>
         </button>
       </div>
       <div class="panel-actions">
         <span class="status-text" id="status-text">Ready</span>
         <button class="icon-btn" id="btn-clear-console" title="Clear console">
-          <i class="lucide lucide-trash-2"></i>
+          <i class="icon-trash-2"></i>
         </button>
       </div>
     </div>
@@ -205,7 +205,7 @@
       <div class="modal-header">
         <h2>Example Models</h2>
         <button class="icon-btn modal-close" id="close-examples">
-          <i class="lucide lucide-x"></i>
+          <i class="icon-x"></i>
         </button>
       </div>
       <div class="modal-body">
@@ -220,7 +220,7 @@
       <div class="modal-header">
         <h2>Settings</h2>
         <button class="icon-btn modal-close" id="close-settings">
-          <i class="lucide lucide-x"></i>
+          <i class="icon-x"></i>
         </button>
       </div>
       <div class="modal-body">
