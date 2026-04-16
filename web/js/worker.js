@@ -171,13 +171,13 @@ async function simulateRender(code, outputFormat, start) {
   await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate work
 
   // Generate a simple binary STL cube
-  const stl = generateDemoCubeSTL();
+  const demoCubeBuffer = generateDemoCubeSTL();
   const duration = performance.now() - start;
 
   log('success', `Demo render completed in ${(duration / 1000).toFixed(2)}s`);
   log('info', 'Note: This is a demo preview. Build the WASM module for actual rendering.');
 
-  const output = stl.buffer.slice(stl.byteOffset, stl.byteOffset + stl.byteLength);
+  const output = demoCubeBuffer.buffer.slice(demoCubeBuffer.byteOffset, demoCubeBuffer.byteOffset + demoCubeBuffer.byteLength);
   self.postMessage(
     { type: 'result', exitCode: 0, output, outputFormat, duration },
     [output]

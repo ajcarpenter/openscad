@@ -224,6 +224,7 @@ function parseAnnotation(comment) {
   const rangeMatch = comment.match(/^\[([\d.+-]+):([\d.+-]+)(?::([\d.+-]+))?\](?:\s*(.*))?$/);
   if (rangeMatch) {
     if (rangeMatch[3] !== undefined) {
+      // Three-part range: [min:step:max]
       return {
         type: 'range',
         min: parseFloat(rangeMatch[1]),
@@ -232,12 +233,13 @@ function parseAnnotation(comment) {
         description: rangeMatch[4] || '',
       };
     }
+    // Two-part range: [min:max]
     return {
       type: 'range',
       min: parseFloat(rangeMatch[1]),
       max: parseFloat(rangeMatch[2]),
       step: 1,
-      description: rangeMatch[3] || '',
+      description: rangeMatch[4] || '',
     };
   }
 
