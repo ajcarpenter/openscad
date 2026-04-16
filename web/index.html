@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenSCAD Web</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Three.js import map -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <!-- CodeMirror from CDN (UMD bundle) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/lib/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/theme/monokai.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/lib/codemirror.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/mode/clike/clike.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/fold/foldcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/fold/foldgutter.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/fold/brace-fold.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/fold/foldgutter.min.css">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/font/lucide.min.css">
+</head>
+<body>
+  <!-- Top toolbar -->
+  <header class="toolbar" role="toolbar" aria-label="Main toolbar">
+    <div class="toolbar-left">
+      <div class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+        <span class="logo-text">OpenSCAD <small>Web</small></span>
+      </div>
+      <div class="toolbar-separator"></div>
+      <button class="toolbar-btn" id="btn-new" title="New file (Ctrl+N)">
+        <i class="icon-file-plus"></i>
+        <span class="btn-label">New</span>
+      </button>
+      <button class="toolbar-btn" id="btn-open" title="Open file (Ctrl+O)">
+        <i class="icon-folder-open"></i>
+        <span class="btn-label">Open</span>
+      </button>
+      <button class="toolbar-btn" id="btn-save" title="Save file (Ctrl+S)">
+        <i class="icon-save"></i>
+        <span class="btn-label">Save</span>
+      </button>
+      <div class="toolbar-separator"></div>
+      <button class="toolbar-btn primary" id="btn-render" title="Render (F5)">
+        <i class="icon-play"></i>
+        <span class="btn-label">Render</span>
+      </button>
+      <div class="toolbar-separator"></div>
+      <button class="toolbar-btn" id="btn-export" title="Export result" disabled>
+        <i class="icon-download"></i>
+        <span class="btn-label">Export</span>
+      </button>
+      <select id="export-format" class="toolbar-select" title="Export format" disabled>
+        <option value="stl">STL</option>
+        <option value="off">OFF</option>
+        <option value="obj">OBJ</option>
+        <option value="wrl">VRML</option>
+        <option value="amf">AMF</option>
+        <option value="csg">CSG</option>
+        <option value="dxf">DXF</option>
+        <option value="svg">SVG</option>
+      </select>
+    </div>
+    <div class="toolbar-right">
+      <button class="toolbar-btn" id="btn-examples" title="Load example">
+        <i class="icon-book-open"></i>
+        <span class="btn-label">Examples</span>
+      </button>
+      <button class="toolbar-btn" id="btn-settings" title="Settings">
+        <i class="icon-settings"></i>
+      </button>
+      <a class="toolbar-btn" href="https://openscad.org/documentation.html" target="_blank" rel="noopener" title="Documentation">
+        <i class="icon-circle-help"></i>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main layout -->
+  <main class="workspace">
+    <!-- Left panel: Editor -->
+    <section class="panel panel-editor" id="panel-editor">
+      <div class="panel-header">
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-tab="editor">
+            <i class="icon-code"></i>
+            <span id="editor-filename">untitled.scad</span>
+          </button>
+        </div>
+        <div class="panel-actions">
+          <button class="icon-btn" id="btn-format" title="Format code">
+            <i class="icon-align-left"></i>
+          </button>
+          <button class="icon-btn" id="btn-wrap" title="Toggle word wrap">
+            <i class="icon-wrap-text"></i>
+          </button>
+        </div>
+      </div>
+      <div class="panel-body" id="editor-container"></div>
+    </section>
+
+    <!-- Resize handle -->
+    <div class="resize-handle vertical" id="resize-editor" role="separator" aria-label="Resize editor and viewer"></div>
+
+    <!-- Right panel: 3D Viewer -->
+    <section class="panel panel-viewer" id="panel-viewer">
+      <div class="panel-header">
+        <div class="panel-tabs">
+          <button class="panel-tab active">
+            <i class="icon-box"></i>
+            <span>3D View</span>
+          </button>
+        </div>
+        <div class="panel-actions">
+          <button class="icon-btn" id="btn-reset-view" title="Reset camera (Home)">
+            <i class="icon-home"></i>
+          </button>
+          <button class="icon-btn" id="btn-view-top" title="Top view">
+            <i class="icon-arrow-up"></i>
+          </button>
+          <button class="icon-btn" id="btn-view-front" title="Front view">
+            <i class="icon-square"></i>
+          </button>
+          <button class="icon-btn" id="btn-toggle-grid" title="Toggle grid">
+            <i class="icon-grid-3x3"></i>
+          </button>
+          <button class="icon-btn" id="btn-toggle-axes" title="Toggle axes">
+            <i class="icon-axis-3d"></i>
+          </button>
+          <button class="icon-btn" id="btn-toggle-wireframe" title="Toggle wireframe">
+            <i class="icon-triangle"></i>
+          </button>
+        </div>
+      </div>
+      <div class="panel-body viewer-container" id="viewer-container">
+        <canvas id="viewer-canvas"></canvas>
+        <div class="viewer-overlay" id="viewer-status">
+          <div class="viewer-message">
+            <i class="icon-play" style="font-size: 48px; opacity: 0.3;"></i>
+            <p>Press <kbd>F5</kbd> or click <strong>Render</strong> to preview your model</p>
+          </div>
+        </div>
+        <!-- Rendering progress overlay -->
+        <div class="viewer-overlay rendering-overlay hidden" id="rendering-overlay">
+          <div class="spinner"></div>
+          <p>Rendering…</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom panel: Console -->
+  <div class="resize-handle horizontal" id="resize-console" role="separator" aria-label="Resize console"></div>
+  <footer class="console-panel" id="console-panel">
+    <div class="panel-header">
+      <div class="panel-tabs">
+        <button class="panel-tab active" data-tab="console">
+          <i class="icon-terminal"></i>
+          <span>Console</span>
+        </button>
+        <button class="panel-tab" data-tab="parameters" id="tab-parameters">
+          <i class="icon-sliders-horizontal"></i>
+          <span>Customizer</span>
+        </button>
+      </div>
+      <div class="panel-actions">
+        <span class="status-text" id="status-text">Ready</span>
+        <button class="icon-btn" id="btn-clear-console" title="Clear console">
+          <i class="icon-trash-2"></i>
+        </button>
+      </div>
+    </div>
+    <div class="panel-body console-body" id="console-body" data-active-tab="console">
+      <div class="console-content" id="console-content" role="log" aria-live="polite"></div>
+      <div class="parameters-content hidden" id="parameters-content">
+        <p class="placeholder-text">No parameters detected. Add customizer comments to your code to enable the customizer panel.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- File input (hidden) -->
+  <input type="file" id="file-input" accept=".scad,.csg,.stl,.dxf,.svg" hidden>
+
+  <!-- Export download link (hidden) -->
+  <a id="download-link" hidden></a>
+
+  <!-- Examples modal -->
+  <dialog class="modal" id="examples-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Example Models</h2>
+        <button class="icon-btn modal-close" id="close-examples">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="example-grid" id="example-grid"></div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Settings modal -->
+  <dialog class="modal" id="settings-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button class="icon-btn modal-close" id="close-settings">
+          <i class="icon-x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-group">
+          <h3>Rendering</h3>
+          <label class="setting-row">
+            <span>Backend</span>
+            <select id="setting-backend" class="toolbar-select">
+              <option value="manifold">Manifold (fast)</option>
+              <option value="cgal">CGAL (legacy)</option>
+            </select>
+          </label>
+          <label class="setting-row">
+            <span>Default $fn</span>
+            <input type="number" id="setting-fn" class="setting-input" value="32" min="3" max="512">
+          </label>
+        </div>
+        <div class="settings-group">
+          <h3>Editor</h3>
+          <label class="setting-row">
+            <span>Font size</span>
+            <input type="number" id="setting-fontsize" class="setting-input" value="14" min="8" max="32">
+          </label>
+          <label class="setting-row">
+            <span>Tab size</span>
+            <input type="number" id="setting-tabsize" class="setting-input" value="2" min="1" max="8">
+          </label>
+        </div>
+        <div class="settings-group">
+          <h3>Viewer</h3>
+          <label class="setting-row">
+            <span>Background color</span>
+            <input type="color" id="setting-bgcolor" class="setting-input" value="#1a1a2e">
+          </label>
+          <label class="setting-row">
+            <span>Model color</span>
+            <input type="color" id="setting-modelcolor" class="setting-input" value="#f9a825">
+          </label>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast notification container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Application script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

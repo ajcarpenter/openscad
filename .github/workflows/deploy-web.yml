@@ -1,0 +1,55 @@
+name: Deploy Web (Cloudflare Pages)
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    container:
+      image: openscad/wasm-base:latest
+    steps:
+      - name: Install git
+        run: apt-get update && apt-get install -y git
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure WASM build
+        run: emcmake cmake -B build-wasm -DWASM_BUILD_TYPE=web -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build-wasm -j$(nproc)
+
+      - name: Assemble web directory
+        run: cmake --build build-wasm --target install-web
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: build-wasm/web/
+
+  deploy:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web
+          path: web/
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 0b3d45c1abb8c79b57f63afaf4418d54
+          command: pages deploy web/ --project-name=openscad --branch=master
